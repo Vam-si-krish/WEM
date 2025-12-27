@@ -3,10 +3,18 @@ import React from 'react'
 export default function AboutUs() {
   return (
     <div className='AboutUs' id='AboutUs'>
-        <h1>About Us</h1>
+        <h1>About West End Market</h1>
         <div className="AboutSection">
-          <img src="./About.jpg" alt="..."  className='AboutImg'/>
-          <p>At Grocify, our mission is to simplify and elevate your grocery shopping experience. We understand the challenges of modern life, and we're here to make your life easier. We're more than just an online grocery store; we're your trusted partner in providing fresh, affordable, and delicious food for you and your family. Our commitment to quality is unwavering, as we source our products from local farmers and trusted suppliers to ensure you receive the freshest and highest-quality items. Our extensive selection caters to a wide range of tastes and dietary preferences, offering everything from organic produce to pantry staples and gourmet treats. We prioritize convenience by allowing you to shop anytime, anywhere through our user-friendly website and mobile app, freeing you from long lines and crowded aisles. We're also dedicated to helping you save, with competitive prices and regular promotions to stretch your budget further. Our exceptional customer service team is always ready to assist you with any questions or concerns, ensuring your satisfaction is our top priority. Join the Grocify community, and let us redefine your grocery shopping experience. We look forward to being your go-to source for all things food-related and appreciate your choice to be part of our culinary journey.</p>
+          <img src="./About.jpg" alt="West End Market Storefront"  className='AboutImg'/>
+          <p>
+            Welcome to West End Market, conveniently located at <strong>74 Staniford St, Boston, MA</strong>. 
+            We are more than just a convenience store; we are a staple of the West End community. 
+            Whether you are looking for your morning coffee, a fresh deli sandwich for lunch, or late-night frozen treats like Ben & Jerry's, we have you covered.
+            <br/><br/>
+            Our shelves are stocked with a wide variety of essentials, from smoke shop accessories to daily household items and cold beverages.
+            We pride ourselves on friendly service and keeping our neighborhood stocked with everything you need, right when you need it. 
+            Stop by today and experience the best convenience in Boston!
+          </p>
         </div>
     </div>
   )

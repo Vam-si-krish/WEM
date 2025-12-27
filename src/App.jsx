@@ -5,29 +5,23 @@ import AdminLogin from './components/AdminLogin'; // Import new component
 import AdminPage from './components/AdminPage';   // Import new component
 import './App.css'
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-
+import Chatbot from './components/Chatbot';
 function App() {
   return (
     <> 
       <BrowserRouter>
         <NavBar></NavBar>
+        
+        <Chatbot />
         <Routes>
-          <Route path='/' element={<Home ></Home>} />
-          <Route path='/Shop' element={<Shop></Shop>} />
-          
-          {/* Admin Routes */}
-          <Route path='/admin-login' element={<AdminLogin />} />
-          <Route path='/admin-dashboard' element={<AdminPage />} />
-          
-          {/* <Route path='/Cart' element={<Cart></Cart>} />
-          <Route path='/Login' element={<Login></Login>} />
-          <Route path='/SignUp' element={<SignUp></SignUp>} />
-          <Route path='/Payment' element={<Payment></Payment>} /> 
-          */}
+             {/* ... your existing routes ... */}
+             <Route path='/' element={<Home ></Home>} />
+             <Route path='/Shop' element={<Shop></Shop>} />
+             <Route path='/admin-login' element={<AdminLogin />} />
+             <Route path='/admin-dashboard' element={<AdminPage />} />
         </Routes>
       </BrowserRouter>
     </>
   );
 }
-
 export default App;
