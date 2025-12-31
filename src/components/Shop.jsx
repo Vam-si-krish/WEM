@@ -3,7 +3,7 @@ import Product from './Product';
 import { db } from '../firebase'; // Import DB
 import { collection, getDocs } from "firebase/firestore"; // Import Firestore methods
 import './Shop.css'
-import { MOCK_PRODUCTS } from '../MockData'; // <--- NEW IMPORT
+// import { MOCK_PRODUCTS } from .'../MockData'; // <--- NEW IMPORT
 
 export default function Shop() {
     // 1. STATE MANAGEMENT
@@ -11,7 +11,7 @@ export default function Shop() {
     const [search, setSearch] = useState("");
     const [selectedTopics, setSelectedTopics] = useState(new Set(["All"]));
     const [showFilter, setShowFilter] = useState(false);
-    const [displayProducts, setDisplayProducts] = useState(MOCK_PRODUCTS);
+    const [displayProducts, setDisplayProducts] = useState([]);
     // Dynamic Topics List (Derived from DB data)
     const [topicsList, setTopicsList] = useState(["All"]);
 
