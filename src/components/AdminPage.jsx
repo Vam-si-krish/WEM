@@ -14,10 +14,18 @@ export default function AdminPage() {
 
     // --- INBOX STATE ---
     const [inboxItems, setInboxItems] = useState([]);
-    const [filter, setFilter] = useState("active"); // 'active' or 'history'
+    const [filter, setFilter] = useState("active");
     const [newTodo, setNewTodo] = useState("");
 
-    // 1. Fetch Chatbot Settings (One-time fetch)
+    // --- PRODUCT MANAGEMENT STATE ---
+    const [prodName, setProdName] = useState("");
+    const [prodCategory, setProdCategory] = useState("");
+    const [prodImg, setProdImg] = useState("");
+    const [prodPrice, setProdPrice] = useState(0);
+    const [prodStock, setProdStock] = useState(10);
+    const [prodStatus, setProdStatus] = useState("");
+
+    // 1. Fetch Chatbot Settings
     useEffect(() => {
         const fetchSettings = async () => {
             const docRef = doc(db, "settings", "chatbot");
@@ -31,189 +39,112 @@ export default function AdminPage() {
         fetchSettings();
     }, []);
 
-    // 2. Real-time Listener for Inbox Items
+    // 2. Real-time Listener for Inbox
     useEffect(() => {
         const q = query(collection(db, "store_inbox"), orderBy("createdAt", "desc"));
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const items = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setInboxItems(items);
         });
         return () => unsubscribe();
     }, []);
 
-    // --- CHATBOT FUNCTIONS ---
-    const handleSaveSettings = async () => {
-        setStatus("Saving...");
-        try {
-            await setDoc(doc(db, "settings", "chatbot"), {
-                mainPrompt: mainPrompt,
-                tempPrompts: tempPrompts
-            });
-            setStatus("Saved successfully!");
-            setTimeout(() => setStatus(""), 2000);
-        } catch (e) {
-            setStatus("Error saving: " + e.message);
-        }
-    };
-
-    const handleAddTemp = () => {
-        if (!newTempText) return;
-        setTempPrompts([...tempPrompts, { id: Date.now(), text: newTempText }]);
-        setNewTempText("");
-    };
-
-    const handleRemoveTemp = (id) => setTempPrompts(tempPrompts.filter(t => t.id !== id));
-
-    // --- INBOX FUNCTIONS ---
+    // --- PRODUCT FUNCTIONS ---
     
-    // Manual Todo Add
-    const handleAddTodo = async () => {
-        if (!newTodo.trim()) return;
+    // Add a single product
+    const handleAddProduct = async () => {
+        if (!prodName || !prodCategory) {
+            alert("Name and Category are required!");
+            return;
+        }
+        setProdStatus("Adding...");
         try {
-            await addDoc(collection(db, "store_inbox"), {
-                text: newTodo,
-                type: 'todo',
-                status: 'active',
-                source: 'admin',
+            await addDoc(collection(db, "products"), {
+                name: prodName,
+                category: prodCategory,
+                imgUrl: prodImg || "", 
+                price: Number(prodPrice),
+                stock: Number(prodStock),
+                text: "1 unit", 
                 createdAt: serverTimestamp()
             });
-            setNewTodo("");
+            setProdStatus("Product Added!");
+            setProdName(""); setProdCategory(""); setProdImg("");
+            setTimeout(() => setProdStatus(""), 2000);
         } catch (e) {
-            console.error("Error adding todo:", e);
+            setProdStatus("Error: " + e.message);
         }
     };
 
-    // Mark as Completed (Move to History)
-    const handleMarkDone = async (id) => {
-        const itemRef = doc(db, "store_inbox", id);
-        await updateDoc(itemRef, { status: 'completed' });
+    // --- CHATBOT & INBOX FUNCTIONS ---
+    const handleSaveSettings = async () => {
+        try {
+            await setDoc(doc(db, "settings", "chatbot"), { mainPrompt, tempPrompts });
+            setStatus("Saved!");
+            setTimeout(() => setStatus(""), 2000);
+        } catch (e) { setStatus("Error: " + e.message); }
     };
-
-    // Permanently Delete (Trash)
-    const handleDeletePermanent = async (id) => {
-        if(window.confirm("Are you sure you want to permanently delete this?")) {
-            await deleteDoc(doc(db, "store_inbox", id));
-        }
-    };
-
-    // Filter Logic
-    const displayedItems = inboxItems.filter(item => {
-        if (filter === 'active') return item.status === 'active';
-        if (filter === 'history') return item.status === 'completed';
-        return true;
-    });
-
-    // Helper for colors
-    const getTypeColor = (type) => {
-        switch(type) {
-            case 'complaint': return '#ffcccc'; // light red
-            case 'todo': return '#ffffcc'; // light yellow
-            case 'feedback': return '#ccffcc'; // light green
-            default: return '#f0f0f0';
-        }
-    };
+    const handleAddTemp = () => { if (newTempText) { setTempPrompts([...tempPrompts, { id: Date.now(), text: newTempText }]); setNewTempText(""); }};
+    const handleRemoveTemp = (id) => setTempPrompts(tempPrompts.filter(t => t.id !== id));
+    const handleAddTodo = async () => { if (newTodo.trim()) { await addDoc(collection(db, "store_inbox"), { text: newTodo, type: 'todo', status: 'active', source: 'admin', createdAt: serverTimestamp() }); setNewTodo(""); }};
+    const handleMarkDone = async (id) => { await updateDoc(doc(db, "store_inbox", id), { status: 'completed' }); };
+    const handleDeletePermanent = async (id) => { if(window.confirm("Delete forever?")) await deleteDoc(doc(db, "store_inbox", id)); };
+    const displayedItems = inboxItems.filter(item => filter === 'active' ? item.status === 'active' : item.status === 'completed');
+    const getTypeColor = (type) => { switch(type) { case 'complaint': return '#ffcccc'; case 'todo': return '#ffffcc'; case 'feedback': return '#ccffcc'; default: return '#f0f0f0'; }};
 
     return (
         <div style={{ padding: '40px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
             <h1>Admin Dashboard</h1>
 
-            {/* --- TOP SECTION: INBOX & TASKS --- */}
+            {/* --- PRODUCT MANAGEMENT SECTION --- */}
+            <div style={{ marginBottom: '40px', border: '2px solid #007bff', borderRadius: '10px', overflow: 'hidden' }}>
+                <div style={{ backgroundColor: '#007bff', color: 'white', padding: '15px' }}>
+                    <h2 style={{margin:0}}>Product Manager</h2>
+                </div>
+                <div style={{ padding: '20px', backgroundColor: '#f0f8ff' }}>
+                    
+                    {/* Add Product Form */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
+                        <input placeholder="Name (e.g. Apple)" value={prodName} onChange={e => setProdName(e.target.value)} style={{padding:'8px'}} />
+                        <input placeholder="Category (e.g. fruit)" value={prodCategory} onChange={e => setProdCategory(e.target.value)} style={{padding:'8px'}} />
+                        <input placeholder="Image URL (Optional)" value={prodImg} onChange={e => setProdImg(e.target.value)} style={{padding:'8px'}} />
+                        <div style={{display:'flex', gap:'5px'}}>
+                            <input type="number" placeholder="Price" value={prodPrice} onChange={e => setProdPrice(e.target.value)} style={{padding:'8px', width:'50%'}} />
+                            <input type="number" placeholder="Stock" value={prodStock} onChange={e => setProdStock(e.target.value)} style={{padding:'8px', width:'50%'}} />
+                        </div>
+                    </div>
+                    <button onClick={handleAddProduct} style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', cursor: 'pointer', width:'100%' }}>
+                        + Add Product
+                    </button>
+                    <p style={{ fontWeight: 'bold', color: 'blue' }}>{prodStatus}</p>
+                </div>
+            </div>
+
+            {/* --- INBOX SECTION --- */}
             <div style={{ marginBottom: '40px', border: '2px solid #333', borderRadius: '10px', overflow: 'hidden' }}>
                 <div style={{ backgroundColor: '#333', color: 'white', padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h2 style={{margin:0}}>Store Inbox & Tasks</h2>
                     <div>
-                        <button 
-                            onClick={() => setFilter('active')}
-                            style={{ 
-                                background: filter === 'active' ? 'white' : 'transparent', 
-                                color: filter === 'active' ? 'black' : 'white',
-                                border: 'none', padding: '8px 16px', cursor: 'pointer', marginRight: '5px', borderRadius: '4px'
-                            }}
-                        >
-                            Active
-                        </button>
-                        <button 
-                            onClick={() => setFilter('history')}
-                            style={{ 
-                                background: filter === 'history' ? 'white' : 'transparent', 
-                                color: filter === 'history' ? 'black' : 'white',
-                                border: 'none', padding: '8px 16px', cursor: 'pointer', borderRadius: '4px'
-                            }}
-                        >
-                            History (Trash)
-                        </button>
+                        <button onClick={() => setFilter('active')} style={{ background: filter === 'active' ? 'white' : 'transparent', color: filter === 'active' ? 'black' : 'white', border: 'none', padding: '8px 16px', cursor: 'pointer', marginRight: '5px', borderRadius: '4px' }}>Active</button>
+                        <button onClick={() => setFilter('history')} style={{ background: filter === 'history' ? 'white' : 'transparent', color: filter === 'history' ? 'black' : 'white', border: 'none', padding: '8px 16px', cursor: 'pointer', borderRadius: '4px' }}>History</button>
                     </div>
                 </div>
-
                 <div style={{ padding: '20px', backgroundColor: '#f5f5f5' }}>
-                    {/* Add Manual Todo Input */}
                     {filter === 'active' && (
                         <div style={{ display: 'flex', marginBottom: '20px' }}>
-                            <input 
-                                type="text" 
-                                value={newTodo}
-                                onChange={(e) => setNewTodo(e.target.value)}
-                                placeholder="Add a quick task manually..."
-                                style={{ flex: 1, padding: '10px', fontSize: '1rem' }}
-                            />
-                            <button onClick={handleAddTodo} style={{ padding: '10px 20px', backgroundColor: 'black', color: 'white', border: 'none', cursor: 'pointer' }}>
-                                Add To-Do
-                            </button>
+                            <input type="text" value={newTodo} onChange={(e) => setNewTodo(e.target.value)} placeholder="Add a quick task..." style={{ flex: 1, padding: '10px' }} />
+                            <button onClick={handleAddTodo} style={{ padding: '10px 20px', backgroundColor: 'black', color: 'white', border: 'none', cursor: 'pointer' }}>Add To-Do</button>
                         </div>
                     )}
-
-                    {/* List Items */}
                     <div style={{ display: 'grid', gap: '10px' }}>
-                        {displayedItems.length === 0 && <p style={{color:'#777'}}>No items found.</p>}
-                        
                         {displayedItems.map(item => (
-                            <div key={item.id} style={{
-                                backgroundColor: 'white',
-                                borderLeft: `5px solid ${getTypeColor(item.type)}`,
-                                padding: '15px',
-                                borderRadius: '4px',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center'
-                            }}>
+                            <div key={item.id} style={{ backgroundColor: 'white', borderLeft: `5px solid ${getTypeColor(item.type)}`, padding: '15px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div>
-                                    <span style={{ 
-                                        fontWeight: 'bold', 
-                                        textTransform: 'uppercase', 
-                                        fontSize: '0.8rem',
-                                        backgroundColor: getTypeColor(item.type),
-                                        padding: '2px 6px',
-                                        borderRadius: '4px',
-                                        marginRight: '10px'
-                                    }}>
-                                        {item.type}
-                                    </span>
-                                    <span style={{ fontSize: '1.1rem' }}>{item.text}</span>
-                                    <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>
-                                        {item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleString() : 'Just now'}
-                                    </div>
+                                    <span style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.8rem', backgroundColor: getTypeColor(item.type), padding: '2px 6px', borderRadius: '4px', marginRight: '10px' }}>{item.type}</span>
+                                    <span>{item.text}</span>
                                 </div>
-
                                 <div>
-                                    {filter === 'active' ? (
-                                        <button 
-                                            onClick={() => handleMarkDone(item.id)}
-                                            style={{ background: 'green', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}
-                                        >
-                                            ✓ Done
-                                        </button>
-                                    ) : (
-                                        <button 
-                                            onClick={() => handleDeletePermanent(item.id)}
-                                            style={{ background: 'red', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}
-                                        >
-                                            🗑 Delete Forever
-                                        </button>
-                                    )}
+                                    {filter === 'active' ? <button onClick={() => handleMarkDone(item.id)} style={{ background: 'green', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}>✓</button> : <button onClick={() => handleDeletePermanent(item.id)} style={{ background: 'red', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}>🗑</button>}
                                 </div>
                             </div>
                         ))}
@@ -221,48 +152,22 @@ export default function AdminPage() {
                 </div>
             </div>
 
-            {/* --- BOTTOM SECTION: CHATBOT BRAIN --- */}
+            {/* --- CHATBOT BRAIN SECTION --- */}
             <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px' }}>
                 <h2 style={{marginTop: 0}}>Chatbot Knowledge Base</h2>
-                
-                {/* Main Data */}
                 <div style={{ marginBottom: '20px' }}>
-                    <h3>Permanent Store Data</h3>
-                    <textarea 
-                        value={mainPrompt}
-                        onChange={(e) => setMainPrompt(e.target.value)}
-                        rows="6"
-                        style={{ width: '100%', padding: '10px' }}
-                        placeholder="Store rules, product locations, etc..."
-                    />
+                    <textarea value={mainPrompt} onChange={(e) => setMainPrompt(e.target.value)} rows="6" style={{ width: '100%', padding: '10px' }} placeholder="Store rules..." />
                 </div>
-
-                {/* Temporary Alerts */}
                 <div style={{ marginBottom: '20px', backgroundColor: '#f9f9f9', padding: '15px', borderRadius: '8px' }}>
-                    <h3>Temporary Alerts</h3>
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                        <input 
-                            value={newTempText} 
-                            onChange={(e) => setNewTempText(e.target.value)}
-                            placeholder="e.g. Closing early today..."
-                            style={{ flex: 1, padding: '8px' }}
-                        />
+                        <input value={newTempText} onChange={(e) => setNewTempText(e.target.value)} placeholder="New alert..." style={{ flex: 1, padding: '8px' }} />
                         <button onClick={handleAddTemp}>Add</button>
                     </div>
                     {tempPrompts.map(t => (
-                        <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                            <span>- {t.text}</span>
-                            <button onClick={() => handleRemoveTemp(t.id)} style={{ color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}>x</button>
-                        </div>
+                        <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}><span>- {t.text}</span><button onClick={() => handleRemoveTemp(t.id)} style={{ color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}>x</button></div>
                     ))}
                 </div>
-
-                <button 
-                    onClick={handleSaveSettings} 
-                    style={{ width: '100%', padding: '15px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', fontSize: '1.1rem', cursor: 'pointer' }}
-                >
-                    Save Knowledge Base
-                </button>
+                <button onClick={handleSaveSettings} style={{ width: '100%', padding: '15px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px' }}>Save Knowledge Base</button>
                 <p style={{ textAlign: 'center', marginTop: '10px', color: 'green' }}>{status}</p>
             </div>
         </div>

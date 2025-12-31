@@ -356,8 +356,8 @@
 
 import React from 'react'
 import ProductsItem from './ProductsItem'
-import { MOCK_PRODUCTS } from './Shop';
-
+// import { MOCK_PRODUCTS } from './Shop';
+import { MOCK_PRODUCTS } from '../MockData'; // <--- NEW IMPORT
 export default function Product(props) {
   // 1. Determine which data to show.
   // If 'passedData' comes from Shop.js, use it. Otherwise use internal/empty list.
