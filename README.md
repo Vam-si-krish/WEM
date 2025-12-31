@@ -1,16 +1,29 @@
-# React + Vite
+# Project Summary: West End Market (WEM)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 1. Project Context
+- **Description:** A React + Vite web application for a physical convenience store.
+- **Store Identity:** West End Market, 74 Staniford St, Boston.
+- **Primary Goals:** Showcase products, allow category-based shopping, and provide AI-driven customer support.
 
-Currently, two official plugins are available:
+## 2. Tech Stack
+- **Frontend:** React (v19), Vite, React Router DOM (v7), Framer Motion.
+- **Backend/Database:** Firebase (Auth & Firestore).
+- **AI:** Google Generative AI (Gemini API).
+- **Styling:** CSS (Modular and component-specific).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 3. Key Components & Routing
+- `/`: Home Page (Hero section, Categories, Product highlights, About Us).
+- `/Shop`: Product catalog with search, category filtering (Dairy, Fruit, etc.), and price/name sorting.
+- `/admin-login` & `/admin-dashboard`: Secure areas for store management.
+- `Chatbot.jsx`: Floating AI assistant using Gemini to provide store-specific info.
 
-## React Compiler
+## 4. Data Structures
+- **Product Object:** `{ name, imgUrl, category, text (weight/size), price, stock }`.
+- **Firebase Firestore:**
+  - Collection: `settings/chatbot` -> Stores `mainPrompt` (rules) and `tempPrompts` (current alerts).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 5. Development Notes
+- **Mock Data:** The `Shop.jsx` component currently uses a `MOCK_PRODUCTS` array for testing.
+- **Environment Variables:**
+  - `VITE_FIREBASE_...`: For database and auth config.
+  - `VITE_GEMINI_API_KEY`: For the AI assistant.
